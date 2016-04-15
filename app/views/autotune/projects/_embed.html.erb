@@ -1,15 +1,14 @@
 <div data-analytics-viewport="autotune"
      data-analytics-label="<%=@project.slug %>:<%=@project.id %>"
-     id="<%=@project.slug %>__graphic">
-<% if @project.blueprint_config['partner_platform_embed_type'] && @project.blueprint_config['partner_platform_embed_type'] === 'image' %>
-  <img class="partner-platform" src='<%= @project.deployer(:publish).url_for('screenshots/screenshot_s.png') %>' width="400px" height="500px" />
-<% end %>
+     id="<%=@project.slug %>__graphic"
+     <% if @project.blueprint_config['partner_platform_embed_type'] %>
+      data-autotune-alt-embed-type="<%= @project.blueprint_config['partner_platform_embed_type'] %>"
+      data-autotune-alt-embed-url="<%= @project.deployer(:publish).url_for('screenshots/screenshot_s.png') %>"
+     <% end %>
+     >
 </div>
 <script type="text/javascript">
 (function() {
-  <% if @project.blueprint_config['partner_platform_embed_type'] && @project.blueprint_config['partner_platform_embed_type'] === 'image' %>
-    document.getElementsByClassName('partner-platform')[0].style.display = 'none';
-  <% end %>
   var l = function() {
     new pym.Parent(
       '<%=@project.slug %>__graphic',
