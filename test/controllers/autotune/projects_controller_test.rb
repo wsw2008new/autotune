@@ -3,7 +3,8 @@ require 'test_helper'
 module Autotune
   # Test project api
   class ProjectsControllerTest < ActionController::TestCase
-    fixtures 'autotune/blueprints', 'autotune/projects', 'autotune/themes', 'autotune/users', 'autotune/groups'
+    fixtures 'autotune/blueprints', 'autotune/projects', 'autotune/themes',
+             'autotune/users', 'autotune/groups', 'autotune/group_memberships'
     test 'that listing projects requires authentication' do
       accept_json!
 
@@ -100,11 +101,11 @@ module Autotune
       accept_json!
       valid_auth_header! :group1_editor
 
-      get :show, :id => autotune_projects(:example_four).id
+      get :show, :id => autotune_projects(:example_three).id
       assert_response :forbidden
     end
 
-    test 'show non-existant project' do
+    test 'show non-existent project' do
       accept_json!
       valid_auth_header!
 
@@ -169,7 +170,7 @@ module Autotune
       accept_json!
       valid_auth_header! :author
 
-      title = 'Updated project'
+      title = 'Updated project as author'
 
       assert_performed_jobs 3 do
         put(:update,
@@ -238,7 +239,7 @@ module Autotune
       title = 'Updated project'
 
       put(:update,
-          :id => autotune_projects(:example_four).id,
+          :id => autotune_projects(:example_three).id,
           :title => title)
       assert_response :forbidden, decoded_response['error']
     end

@@ -12,7 +12,7 @@ module Autotune
     belongs_to :parent, :class_name => 'Theme'
     has_many :children, :class_name => 'Theme', :foreign_key => 'parent_id'
 
-    before_validation :assign_parent, :on => :create
+    before_validation :update_parent, :on => :create
     validates :slug, :title, :group, :presence => true
     validates :title,
               :uniqueness => true
@@ -28,16 +28,16 @@ module Autotune
 
     after_save :pub_to_redis
 
-    def assign_parent
-      return if group.nil?
-      parent_theme = get_default_theme_for_group(group.id)
+    def update_parent
+      return if parent.present? || group.nil?
+      parent_theme = Theme.get_default_theme_for_group(group.id)
       self.parent = parent_theme unless parent_theme == self
     end
 
-    # Merge data with parent theme
+    # Merge data with parent and generic themes
     def config_data
-      return data if parent.nil?
-      parent.data.deep_merge(data)
+      return Rails.configuration.autotune.generic_theme.deep_merge(data) if parent.nil?
+      parent.config_data.deep_merge(data)
     end
 
     def update_data(build_blueprints: true)
@@ -49,7 +49,7 @@ module Autotune
     end
 
     def self.add_default_theme_for_group(group)
-      default_theme = get_default_theme_for_group(group.id)
+      default_theme = Theme.get_default_theme_for_group(group.id)
       return default_theme unless default_theme.nil?
       default_theme = Theme.create(
         :title => group.name,
@@ -61,6 +61,11 @@ module Autotune
     # return group name
     def group_name
       group.name
+    end
+
+    # Check if this is a default theme
+    def is_default?
+      parent.nil?
     end
 
     # Return twitter handle
@@ -82,7 +87,7 @@ module Autotune
     end
 
     # Get default theme for group
-    def get_default_theme_for_group(group_id)
+    def self.get_default_theme_for_group(group_id)
       Theme.find_by(
         :parent_id => nil,
         :group_id => group_id)
